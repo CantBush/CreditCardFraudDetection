@@ -148,9 +148,10 @@ ggplot(data = sampledCredit, aes(x = V1, y = V2, col = Class)) +
   scale_color_manual(values = c('dodgerblue2', 'red')) # fraud cases still overlapped
 
 #-------------------------------------------------------------------------------
-#Using SMOTE to balance dataset 
+# Using SMOTE to balance dataset 
 # generates synthetic instances for the minority class using existing instance and
 # its k nearest neighbors
+# This method requires all variables to be numeric besides target variable for SMOTE to work
 
 install.packages("smotefamily")
 library(smotefamily)
@@ -185,12 +186,42 @@ ggplot(creditSmote, aes(x = V1, y = V2, color = Class)) +
   scale_color_manual(values = c('dodgerblue2', 'red'))
 
 #-------------------------------------------------------------------------------
-# Build decision tree to predict whether a transaction is fraudulent or not
+# Build decision tree to predict whether a transaction is fraudulent or not with SMOTE data
 
 install.packages('rpart')
 install.packages('rpart.plot')
 
-library(rpart)
-library(rpart.plot)
+library(rpart) # builds tree
+library(rpart.plot) # plots tree
 
 CART_model <- rpart(Class ~ . , creditSmote)
+# plots basic decision tree
+rpart.plot(CART_model, extra = 0, type = 5, tweak = 1.2)
+
+# predicts fraud classes on test set
+predictedVal <- predict(CART_model, testData, type ='class')
+
+# build confusion matrix
+library(caret)
+confusionMatrix(predictedVal, testData$Class)
+
+#-------------------------------------------------------------------------------
+# Decision Tree without SMOTE
+
+CART_model <- rpart(Class ~ ., trainData[,-1])
+
+rpart.plot(CART_model, extra = 0, type = 5, tweak = 1.2)
+
+predictedVal <- predict(CART_model, testData[, -1], type = 'class')
+
+library(caret)
+confusionMatrix(predictedVal, testData$Class)
+
+#-------------------------------------------------------------------------------
+# Test both SMOTE and non SMOTE methods
+
+# yields higher accuracy on fraud cases but falsely identifies more legit cases as fraud
+predictedVal <- predict(CART_model, creditCard[-1], type = 'class')
+
+# few false positives but more fraud cases passed as legit
+confusionMatrix(predictedVal, creditCard$Class)
