@@ -123,6 +123,7 @@ ggplot(data = undersampledCredit, aes(x = V1, y = V2, col = Class)) +
   scale_color_manual(values = c('dodgerblue2', 'red'))
 
 #-------------------------------------------------------------------------------
+<<<<<<< HEAD
 # ROS & RUS
 # Oversample the fraud cases and undersample the legit cases
 
